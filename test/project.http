@@ -1,0 +1,86 @@
+### Variables
+@baseUrl = http://localhost:3000/api
+@token = TU_TOKEN_AQUI
+
+### ==========================================
+### PROYECTOS
+### ==========================================
+
+### Crear proyecto
+POST {{baseUrl}}/project
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Reforma Oficina Central",
+  "projectCode": "PRJ-001",
+  "client": "ID_DEL_CLIENTE",
+  "email": "proyecto@empresa.com",
+  "notes": "Reforma integral de la planta baja",
+  "address": {
+    "street": "Avenida de la Constitución",
+    "number": "42",
+    "postal": "28045",
+    "city": "Madrid",
+    "province": "Madrid"
+  }
+}
+
+### Listar proyectos (con paginación)
+GET {{baseUrl}}/project?page=1&limit=10
+Authorization: Bearer {{token}}
+
+### Listar proyectos (filtrar por cliente)
+GET {{baseUrl}}/project?client=ID_DEL_CLIENTE
+Authorization: Bearer {{token}}
+
+### Listar proyectos (filtrar por nombre)
+GET {{baseUrl}}/project?name=Reforma
+Authorization: Bearer {{token}}
+
+### Listar proyectos activos
+GET {{baseUrl}}/project?active=true
+Authorization: Bearer {{token}}
+
+### Listar proyectos (ordenar por fecha descendente)
+GET {{baseUrl}}/project?sort=-createdAt
+Authorization: Bearer {{token}}
+
+### Obtener un proyecto concreto
+GET {{baseUrl}}/project/ID_DEL_PROYECTO
+Authorization: Bearer {{token}}
+
+### Actualizar proyecto
+PUT {{baseUrl}}/project/ID_DEL_PROYECTO
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Reforma Oficina Central - Fase 2",
+  "notes": "Ampliación del proyecto a la primera planta"
+}
+
+### Desactivar proyecto
+PUT {{baseUrl}}/project/ID_DEL_PROYECTO
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "active": false
+}
+
+### Archivar proyecto (soft delete)
+DELETE {{baseUrl}}/project/ID_DEL_PROYECTO?soft=true
+Authorization: Bearer {{token}}
+
+### Eliminar proyecto (hard delete)
+DELETE {{baseUrl}}/project/ID_DEL_PROYECTO?soft=false
+Authorization: Bearer {{token}}
+
+### Listar proyectos archivados
+GET {{baseUrl}}/project/archived
+Authorization: Bearer {{token}}
+
+### Restaurar proyecto archivado
+PATCH {{baseUrl}}/project/ID_DEL_PROYECTO/restore
+Authorization: Bearer {{token}}

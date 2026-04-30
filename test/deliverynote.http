@@ -1,0 +1,103 @@
+### Variables
+@baseUrl = http://localhost:3000/api
+@token = TU_TOKEN_AQUI
+
+### ==========================================
+### ALBARANES
+### ==========================================
+
+### Crear albarán de materiales
+POST {{baseUrl}}/deliverynote
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "project": "ID_DEL_PROYECTO",
+  "client": "ID_DEL_CLIENTE",
+  "format": "material",
+  "description": "Entrega de cemento para la obra",
+  "workDate": "2026-04-15",
+  "material": "Cemento Portland",
+  "quantity": 50,
+  "unit": "sacos"
+}
+
+### Crear albarán de horas simple
+POST {{baseUrl}}/deliverynote
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "project": "ID_DEL_PROYECTO",
+  "client": "ID_DEL_CLIENTE",
+  "format": "hours",
+  "description": "Jornada de instalación eléctrica",
+  "workDate": "2026-04-16",
+  "hours": 8
+}
+
+### Crear albarán de horas con varios trabajadores
+POST {{baseUrl}}/deliverynote
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "project": "ID_DEL_PROYECTO",
+  "client": "ID_DEL_CLIENTE",
+  "format": "hours",
+  "description": "Equipo de pintura en planta baja",
+  "workDate": "2026-04-17",
+  "workers": [
+    { "name": "Juan López", "hours": 6 },
+    { "name": "María García", "hours": 7 },
+    { "name": "Pedro Ruiz", "hours": 5 }
+  ]
+}
+
+### Listar albaranes (con paginación)
+GET {{baseUrl}}/deliverynote?page=1&limit=10
+Authorization: Bearer {{token}}
+
+### Listar albaranes (filtrar por proyecto)
+GET {{baseUrl}}/deliverynote?project=ID_DEL_PROYECTO
+Authorization: Bearer {{token}}
+
+### Listar albaranes (filtrar por cliente)
+GET {{baseUrl}}/deliverynote?client=ID_DEL_CLIENTE
+Authorization: Bearer {{token}}
+
+### Listar albaranes de tipo horas
+GET {{baseUrl}}/deliverynote?format=hours
+Authorization: Bearer {{token}}
+
+### Listar albaranes firmados
+GET {{baseUrl}}/deliverynote?signed=true
+Authorization: Bearer {{token}}
+
+### Listar albaranes por rango de fechas
+GET {{baseUrl}}/deliverynote?from=2026-01-01&to=2026-12-31
+Authorization: Bearer {{token}}
+
+### Obtener un albarán concreto
+GET {{baseUrl}}/deliverynote/ID_DEL_ALBARAN
+Authorization: Bearer {{token}}
+
+### Descargar albarán en PDF
+GET {{baseUrl}}/deliverynote/pdf/ID_DEL_ALBARAN
+Authorization: Bearer {{token}}
+
+### Firmar albarán (enviar imagen de firma como multipart)
+PATCH {{baseUrl}}/deliverynote/ID_DEL_ALBARAN/sign
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=firma
+
+--firma
+Content-Disposition: form-data; name="signature"; filename="firma.png"
+Content-Type: image/png
+
+< ./firma.png
+--firma--
+
+### Eliminar albarán (solo si no está firmado)
+DELETE {{baseUrl}}/deliverynote/ID_DEL_ALBARAN
+Authorization: Bearer {{token}}

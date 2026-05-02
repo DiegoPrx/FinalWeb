@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { logErrorToSlack } from '../services/logger.service.js';
 
 /**
  * Middleware para rutas no encontradas
@@ -11,11 +12,12 @@ export const notFound = (req, res, next) => {
 };
 
 /**
- * Middleware global de errores
+ * Middleware global de errores.
+ * Envía errores 5XX a Slack mediante webhook.
  */
 export const errorHandler = (err, req, res, next) => {
   console.error('❌ Error:', err.message);
-  
+
   // Error de validación de Mongoose
   if (err instanceof mongoose.Error.ValidationError) {
     const messages = Object.values(err.errors).map(e => e.message);
@@ -25,7 +27,7 @@ export const errorHandler = (err, req, res, next) => {
       details: messages
     });
   }
-  
+
   // Error de Cast (ID inválido)
   if (err instanceof mongoose.Error.CastError) {
     return res.status(400).json({
@@ -33,7 +35,7 @@ export const errorHandler = (err, req, res, next) => {
       message: `Valor inválido para '${err.path}'`
     });
   }
-  
+
   // Error de duplicado
   if (err.code === 11000) {
     const field = Object.keys(err.keyValue || {})[0] || 'campo';
@@ -42,7 +44,7 @@ export const errorHandler = (err, req, res, next) => {
       message: `Ya existe un registro con ese '${field}'`
     });
   }
-  
+
   // Error de Multer - tamaño
   if (err.code === 'LIMIT_FILE_SIZE') {
     return res.status(400).json({
@@ -50,7 +52,7 @@ export const errorHandler = (err, req, res, next) => {
       message: 'El archivo excede el tamaño máximo (10MB)'
     });
   }
-  
+
   // Error de Multer - cantidad
   if (err.code === 'LIMIT_FILE_COUNT') {
     return res.status(400).json({
@@ -58,7 +60,7 @@ export const errorHandler = (err, req, res, next) => {
       message: 'Se excedió el número máximo de archivos'
     });
   }
-  
+
   // Error de Zod
   if (err.name === 'ZodError') {
     const errors = err.errors.map(e => ({
@@ -71,9 +73,25 @@ export const errorHandler = (err, req, res, next) => {
       details: errors
     });
   }
-  
+
+  // Determinar código de estado
+  const statusCode = err.statusCode || err.status || 500;
+
+  // Si es un error 5XX, enviar a Slack
+  if (statusCode >= 500) {
+    logErrorToSlack({
+      method: req.method,
+      path: req.originalUrl,
+      message: err.message,
+      stack: err.stack,
+      statusCode,
+    }).catch(slackErr => {
+      console.error('Error al enviar log a Slack:', slackErr.message);
+    });
+  }
+
   // Error genérico
-  res.status(err.status || 500).json({
+  res.status(statusCode).json({
     error: true,
     message: err.message || 'Error interno del servidor'
   });

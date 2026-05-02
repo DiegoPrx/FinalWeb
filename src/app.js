@@ -3,8 +3,11 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger.js';
 import routes from './routes/index.js';
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
+import mongoose from 'mongoose';
 
 const app = express();
 
@@ -43,13 +46,31 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('storage'));
 
 // ============================================
+// Documentación Swagger
+// ============================================
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'BildyApp API - Documentación',
+}));
+
+// ============================================
 // Rutas
 // ============================================
 
-// Health check
+// Health check con estado de MongoDB
 app.get('/health', (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const dbStatus = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting',
+  };
+
   res.json({
     status: 'ok',
+    db: dbStatus[dbState] || 'unknown',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   });

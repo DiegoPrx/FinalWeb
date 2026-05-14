@@ -238,8 +238,9 @@ export const signDeliveryNote = async (req, res, next) => {
       throw new AppError('Albarán no encontrado', 404);
     }
 
+    // 409 Conflict: la peticion es correcta pero el estado del recurso impide ejecutarla
     if (deliveryNote.signed) {
-      throw new AppError('Este albarán ya está firmado', 400);
+      throw new AppError('Este albarán ya está firmado', 409);
     }
 
     if (!req.file) {
@@ -313,11 +314,14 @@ export const deleteDeliveryNote = async (req, res, next) => {
       throw new AppError('Albarán no encontrado', 404);
     }
 
+    // 409 Conflict: borrar un albaran firmado es un conflicto de estado, no un error de formato
     if (deliveryNote.signed) {
-      throw new AppError('No se puede eliminar un albarán firmado', 400);
+      throw new AppError('No se puede eliminar un albarán firmado', 409);
     }
 
-    await DeliveryNote.findByIdAndDelete(id);
+    // Soft delete: marcar como eliminado en vez de borrar fisicamente
+    // Esto mantiene la integridad referencial con los PDFs y permite auditoria
+    await DeliveryNote.findByIdAndUpdate(id, { deleted: true });
 
     res.json({ message: 'Albarán eliminado correctamente' });
   } catch (error) {
